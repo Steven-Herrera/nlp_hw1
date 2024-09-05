@@ -3,7 +3,7 @@
 Task 1: Regex and building vocabulary of a corpus
 
 TODO:
-    [] Build a regex pattern to detect all the headlines that mention all the pronoun names (Donald Trump,
+    [X] Build a regex pattern to detect all the headlines that mention all the pronoun names (Donald Trump,
        Joe Biden, Thai Le, Indiana University Bloomington) in the dataset. List all the headlines that you can
        find and print out how many unique names you can collect.
 
@@ -29,48 +29,67 @@ CITATIONS:
 import pandas as pd
 import re
 
-"""Task 1a
-I'm thinking of building a regex to combine different first/last names together.
-Then I'll have to make a disgusting regex like fname1|lname1|fname1|lname2 ...
-I'm gonna have to make a function to return a match or None
-"""
-def _get_combinations(col="Romanized Name"):
-    """Combines each first name with every other last name
-    to return a list of full names"""
-    fnames_df = pd.read_csv("name_data/first_names.csv")
-    lnames_df = pd.read_csv('name_data/last_names.csv')
-
-    full_names = []
-    for fname in fnames_df[col]:
-        fname_regex = _make_regex_name(fname)
-        for lname in lnames_df[col]:
-            lname_regex = _make_regex_name(lname)
-            full_name = f"{fname_regex} {lname_regex}"
-            full_names.append(full_name)
-    return full_names
-
-def _make_regex_name(name):
-    """Converts a name into a regex to match upper and lowercase names"""
-    first_letter = name[0]
-    truncated_name = name[1:]
-    opposite_case = first_letter.lower() if first_letter.isupper() else first_letter.upper()
-    regex_name = f"[{first_letter}{opposite_case}]{truncated_name}"
-    return regex_name
-
-def _make_regex(full_names):
-    """Make a regex using all of the names returned from `_get_combinations`"""
-    pattern = "|".join(full_names)
+def _return_pattern():
+    """Returns a generic regex pattern for finding names"""
+    patterns = [
+        "[A-aZ-z]+ [A-Z]\. [A-aZ-z]+", # matches names like Michael J. Fox
+        "Mrs?\. [A-aZ-z]+", # Matches names like Mr. Smith and Mrs. Smith
+        "Dr\. [A-aZ-z]+", # Matches names like Dr. Smith
+        "Ms\. [A-aZ-z]+", # Matches names like Ms. Smith
+        "Misses [A-aZ-z]+", # Matches names like Misses Smith
+        "Pope [A-aZ-z]+", # Matches names like Pope Francis
+        "Prince [A-aZ-z]+",
+        "Princess [A-aZ-z]+",
+        "Queen [A-aZ-z]+",
+        "^[A-Z][a-z]+ [A-aZ-z]+ [A-Z][a-z]+(?=, .*, Dies at [0-9]+)", # "Kirk Peter Smith, famous person, Dies at 88"
+        "^[A-Z][a-z]+ [A-Z][a-z]+(?=, .*, Dies at [0-9]+)", # "Kirk Smith, famous person, Dies at 88"
+        "^[A-aZ-z]+ [A-aZ-z]+(?=, .*, Is Dead at [0-9]+)", # Kirk Smith, famous person, Is Dead at 88
+        "^[A-aZ-z]+ [A-aZ-z]+ [A-aZ-z]+(?=, .*, Is Dead at [0-9]+)" # similar to above
+        "^[A-Z][a-z]{4,} [A-Z][a-z]{3,}(?=’s [AEIOU])", # Aretha Franklin's ...
+        "^[A-aZ-z]{6,} [A-aZ-z]{6,13}(?=’s)" # 
+        "[A-aZ-z]+ [A-aZ-z]+(?=, [0-9]+, .*, Dies)",
+        "[A-aZ-z]+ [A-aZ-z]+ [A-aZ-z]+(?=, [0-9]+, .*, Dies)"
+        "[A-aZ-z]+ [A-aZ-z]+ Jr\.",
+    ]
+    pattern = "|".join(patterns)
     return pattern
+
+def task1a():
+    pattern = _return_pattern()
+    df = pd.read_csv('text_only.csv')
+    headlines = df['text'].tolist()
+    n = len(headlines)
+    results = []
+    for i in range(n):
+        hl = headlines[i]
+        m = re.findall(pattern, hl)
+        if len(m) > 0:
+            print(hl)
+            results.extend(m)
+    # r = len(results)
+    unique_names = set(results)
+    u = len(unique_names)
+    # print(f"Num Names: {r}")
+    print(f"Unique Names: {u}")
+
+def task1b():
+    """Build a vocabulary set from the headlines"""
+
 
 def task1():
-    """RUns task1"""
-    full_names = _get_combinations()
-    pattern = _make_regex(full_names)
-    return pattern
+    """Runs task1"""
+    task1a()
 
 def main():
     """Run the tasks"""
-    task1()
+    # task1()
+    df = pd.read_csv("text_only.csv")
+    headlines = df['text'].tolist()
+    n = len(headlines)
+    for i in range(n):
+        hl = headlines[i]
+        if 800 < i < 1100:
+            print(i, hl)
 
 if __name__ == "__main__":
     main()
