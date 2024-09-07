@@ -1,5 +1,8 @@
-install:
+install-libraries:
 	pip install -r requirements.txt
+
+install: install-libraries
+	python -m nltk.downloader punkt_tab
 
 lint:
 	pylint app.py

@@ -5,7 +5,7 @@ import re
 import sys
 
 sys.path.append("./")
-from hw1 import _return_pattern, task1a, task1b
+from hw1 import _return_pattern, task1a, task1b, task1c
 
 def test_task1a():
     """Testing regex output"""
@@ -14,6 +14,9 @@ def test_task1a():
 def test_task1b():
     task1b()
 
+def test_task1c():
+    task1c()
+
 if __name__ == "__main__":
     # test_task1a()
-    test_task1b()
+    test_task1c()

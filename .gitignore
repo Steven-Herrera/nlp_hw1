@@ -162,4 +162,4 @@ cython_debug/
 #.idea/
 
 dev_requirements.txt
-text_only.csv
+word_frequency.png

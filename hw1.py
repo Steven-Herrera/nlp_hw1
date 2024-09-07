@@ -7,27 +7,22 @@ TODO:
        Joe Biden, Thai Le, Indiana University Bloomington) in the dataset. List all the headlines that you can
        find and print out how many unique names you can collect.
 
-    [] Build a set of vocabulary from all the headlines. This can be done through word tokenization, text
+    [X] Build a set of vocabulary from all the headlines. This can be done through word tokenization, text
        normalization--e.g., case folding, lemmatization. Remember, a set of vocabulary contains only unique
        types of words. Please print out the size of your vocabulary.
 
     [] Count the frequency of each vocabulary across all the headlines. Plot a plot showing such frequency
        distribution for the top 100 most frequent words: the x-axis represents each word, and the y-axis
        represents the frequency of the corresponding word.
+    """
 
-CITATIONS:
-    @misc{nlp-hw1,
-    author = {Andy Boothe},
-    title = {popular-names-by-country-dataset},
-    year = {2023},
-    publisher = {GitHub},
-    journal = {GitHub repository},
-    howpublished = {url{https://github.com/sigpwned/popular-names-by-country-dataset}},
-    commit = {eb62e13d4d62dd96cdfae79d293a02066352205f}
-    }"""
-
+from nltk.tokenize import word_tokenize
+from collections import Counter
+import seaborn as sns
+import matplotlib.pyplot as plt
 import pandas as pd
 import re
+import string
 
 def _return_pattern():
     """Returns a generic regex pattern for finding names"""
@@ -54,9 +49,9 @@ def _return_pattern():
     pattern = "|".join(patterns)
     return pattern
 
-def task1a():
+def task1a(filepath = 'nytimes_data_final.csv'):
     pattern = _return_pattern()
-    df = pd.read_csv('text_only.csv')
+    df = pd.read_csv(filepath)
     headlines = df['text'].tolist()
     n = len(headlines)
     results = []
@@ -72,13 +67,51 @@ def task1a():
     # print(f"Num Names: {r}")
     print(f"Unique Names: {u}")
 
-def task1b():
-    """Build a vocabulary set from the headlines"""
+def normalize(text):
+    """Tokenizes a headline from the nytimes dataset"""
+    punct = string.punctuation + '‘' + '’'
+    for p in punct:
+        text = text.replace(p, '')
+    # text = text.replace('’', '')
+    lowered_text = text.casefold().split()
+    word_lst = list(set(lowered_text)) if len(lowered_text) > 1 else lowered_text
+    new_text = " ".join(word_lst)
+    return new_text
 
+def task1b(filepath = 'nytimes_data_final.csv'):
+    """Build a vocabulary set from the headlines"""
+    df = pd.read_csv(filepath)
+    headlines = df['text'].apply(lambda x: normalize(x)).tolist()
+    tokenized_headlines = word_tokenize(" ".join(headlines))
+    unique_tokens = list(set(tokenized_headlines))
+    num_unique_tokens = len(unique_tokens)
+    print(num_unique_tokens)
+    return unique_tokens
+
+def task1c():
+    unique_tokens = task1b()
+    d = {word:0 for word in unique_tokens}
+    counter = Counter(d)
+    df = pd.read_csv('nytimes_data_final.csv')
+    headlines = df['text'].apply(lambda x: normalize(x)).tolist()
+    tokenized_headlines = word_tokenize(" ".join(headlines))
+
+    for word in tokenized_headlines:
+        if word in counter:
+            counter[word] += 1
+    # print(pd.DataFrame.from_records(counter.most_common(100)))
+    top_100_df = pd.DataFrame.from_records(counter.most_common(100)).rename(
+        columns = {0: 'word', 1: 'count'}
+    )
+    sns.set_theme(rc={'figure.figsize':(16,8)})
+    plot = sns.barplot(top_100_df, x='word', y='count').get_figure()
+    plt.xticks(rotation=90)
+    plot.savefig('word_frequency.png')
 
 def task1():
     """Runs task1"""
     task1a()
+    task1b()
 
 def main():
     """Run the tasks"""
