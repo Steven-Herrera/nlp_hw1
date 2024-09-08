@@ -112,17 +112,72 @@ def task1():
     """Runs task1"""
     task1a()
     task1b()
+    task1c()
+
+def levenshtein_full_matrix(str1, str2):
+    """Calculates the Levenshtein distance between two strings
+    
+    Citation:
+        GeeksForGeeks
+        31 Jan 2024
+        Introduction to Levenshtein distance
+        Source Code
+        https://www.geeksforgeeks.org/introduction-to-levenshtein-distance/
+    """
+    m = len(str1)
+    n = len(str2)
+ 
+    # Initialize a matrix to store the edit distances
+    dp = [[0 for _ in range(n + 1)] for _ in range(m + 1)]
+ 
+    # Initialize the first row and column with values from 0 to m and 0 to n respectively
+    for i in range(m + 1):
+        dp[i][0] = i
+    for j in range(n + 1):
+        dp[0][j] = j
+ 
+    # Fill the matrix using dynamic programming to compute edit distances
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if str1[i - 1] == str2[j - 1]:
+                # Characters match, no operation needed
+                dp[i][j] = dp[i - 1][j - 1]
+            else:
+                # Characters don't match, choose minimum cost among insertion, deletion, or substitution
+                dp[i][j] = 1 + min(dp[i][j - 1], dp[i - 1][j], dp[i - 1][j - 1])
+ 
+    # Return the edit distance between the strings
+    return dp[m][n]
+
+def suggest(char, k):
+    with open('WordList-1.txt', 'r', encoding='latin-1') as txt:
+        word_lst = txt.read().splitlines()
+    
+    last_substr = char.split()[-1]
+    sub_lst = [word for word in word_lst if word.startswith(last_substr)]
+
+    distances = {}
+    for word in sub_lst:
+        levenshtein_distance = levenshtein_full_matrix(last_substr, word)
+        distances[word] = levenshtein_distance
+    
+    sorted_distances = dict(sorted(distances.items(), key=lambda item: item[1]))
+
+    top_words = {}
+    for i, tup in enumerate(sorted_distances.items()):
+        top_words[tup[0]] = tup[1]
+        if i >= k - 1:
+            break
+
+    return top_words
 
 def main():
     """Run the tasks"""
     # task1()
-    df = pd.read_csv("text_only.csv")
-    headlines = df['text'].tolist()
-    n = len(headlines)
-    for i in range(n):
-        hl = headlines[i]
-        if 800 < i < 1100:
-            print(i, hl)
+    char = "why i"
+    k = 5
+    top_words = suggest(char, k)
+    print(top_words)
 
 if __name__ == "__main__":
     main()
